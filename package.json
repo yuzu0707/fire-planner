@@ -5,6 +5,11 @@
   "description": "A FIRE planner with Firebase Google login and cloud-synced scenarios.",
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "firebase:login": "firebase login",
+    "firebase:deploy": "firebase deploy --only hosting"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.13.0"
   }
 }

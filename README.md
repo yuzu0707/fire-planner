@@ -24,6 +24,7 @@
 │  └─ dev-server.mjs
 ├─ docs/
 │  ├─ firebase-google-setup.md
+│  ├─ firebase-hosting-deploy.md
 │  └─ github-vercel-deploy.md
 └─ firebase/
    └─ firestore.rules
@@ -92,6 +93,10 @@ node scripts/check.mjs
 5. 用 Vercel 部署
    - 看 [docs/github-vercel-deploy.md](./docs/github-vercel-deploy.md)
 
+如果你所在网络对 `vercel.app` 不稳定，也可以直接改用 Firebase Hosting：
+
+- [docs/firebase-hosting-deploy.md](./docs/firebase-hosting-deploy.md)
+
 ## Firebase 配置
 
 编辑 [config.js](./config.js)：
@@ -119,4 +124,5 @@ window.FIRE_APP_CONFIG = {
 
 部署文档见：
 
+- [docs/firebase-hosting-deploy.md](./docs/firebase-hosting-deploy.md)
 - [docs/github-vercel-deploy.md](./docs/github-vercel-deploy.md)

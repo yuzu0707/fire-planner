@@ -1,3 +1,4 @@
 .vercel/
+.firebase/
 node_modules/
 *.log
