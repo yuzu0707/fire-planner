@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>余火 FIRE Planner</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="glow glow-a"></div>
+    <div class="glow glow-b"></div>
+
+    <div class="layout">
+      <aside class="rail panel">
+        <div class="brand">
+          <p class="eyebrow">FIRE Planner</p>
+          <h1>余火</h1>
+        </div>
+
+        <section class="rail-section rail-account">
+          <div class="account-bar">
+            <div class="account-actions">
+              <div class="section-head account-head">
+                <p class="eyebrow">Account</p>
+                <h2>账号登录</h2>
+              </div>
+
+              <button class="primary" id="loginButton" type="button">Google 登录</button>
+
+              <div id="accountMenu" class="account-menu" hidden>
+                <button
+                  class="avatar-button"
+                  id="avatarButton"
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded="false"
+                  aria-label="打开账号菜单"
+                >
+                  <span id="avatarInitial">余</span>
+                </button>
+
+                <div id="accountPopover" class="account-popover" hidden>
+                  <div class="account-popover-head">
+                    <div class="account-user">
+                      <strong id="accountMenuName">已登录账号</strong>
+                    </div>
+                    <button class="ghost account-logout" id="logoutButton" type="button">退出</button>
+                  </div>
+
+                  <div class="saved-shell">
+                    <div class="saved-head">
+                      <h3>历史方案</h3>
+                    </div>
+                    <div id="savedPlans" class="saved-list"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p id="authFeedback" class="auth-feedback" hidden></p>
+        </section>
+      </aside>
+
+      <main class="work panel">
+        <section class="wizard-shell">
+          <div class="section-head">
+            <p class="eyebrow">Question Flow</p>
+            <h3 id="wizardTitle">第 1 步：先确认你的时间轴</h3>
+            <p id="wizardCopy" class="copy">我们会一组一组地问，填完最后一步再统一给你结果分析。</p>
+          </div>
+          <div id="stepNav" class="step-nav"></div>
+        </section>
+
+        <form id="plannerForm" class="form" novalidate>
+          <section class="block step-panel" data-step-label="基础信息">
+            <div class="section-head">
+              <p class="eyebrow">Timeline</p>
+              <h3>时间轴</h3>
+              <p class="copy">先确定你现在在哪里，以及你想在几岁开始 FIRE。</p>
+            </div>
+            <div class="grid two">
+              <label class="field span-2">
+                <span>方案名称</span>
+                <input id="planName" name="planName" type="text" maxlength="40" placeholder="未命名方案" />
+              </label>
+              <label class="field">
+                <span>当前年龄</span>
+                <input id="currentAge" name="currentAge" type="number" min="18" max="100" step="1" />
+              </label>
+              <label class="field span-2">
+                <span>退休时间设定方式</span>
+              </label>
+              <div class="choice-grid span-2">
+                <label class="choice choice-compact">
+                  <input type="radio" name="retireAgeMode" value="known" />
+                  <strong>退休方式合理性评估</strong>
+                  <span>我已经有一套大致的退休设想，想让系统评估这套方案是否稳妥，并给出更详细的退休规划。</span>
+                </label>
+                <label class="choice choice-compact">
+                  <input type="radio" name="retireAgeMode" value="estimate" />
+                  <strong>请帮我估算退休时间</strong>
+                  <span>我先提供资产、支出和退休后收入，让系统给出更稳妥的建议退休年龄。</span>
+                </label>
+              </div>
+              <label class="field" id="desiredRetireAgeField">
+                <span id="desiredRetireAgeLabel">目标退休年龄</span>
+                <input
+                  id="desiredRetireAge"
+                  name="desiredRetireAge"
+                  type="number"
+                  min="18"
+                  max="100"
+                  step="1"
+                  placeholder="如果你已经有明确退休时间，就在这里填写"
+                />
+                <small id="desiredRetireAgeHint" class="field-tip">如果你已经有明确退休时间，就在这里填写；如果还不确定，可以切到“请帮我估算退休时间”。</small>
+              </label>
+              <label class="field">
+                <span>预计寿命</span>
+                <input id="lifeExpectancy" name="lifeExpectancy" type="number" min="40" max="120" step="1" />
+              </label>
+              <p id="retireAgeEstimateNote" class="note span-2" hidden>你不需要先填退休年龄。等后面的资产、支出和退休后收入都填完后，系统会结合你选择的退休方式，给出更稳妥的建议退休时间。</p>
+            </div>
+          </section>
+
+          <section class="block step-panel" data-step-label="资产与收益">
+            <div class="section-head">
+              <p class="eyebrow">Wealth</p>
+              <h3>积累与购买力</h3>
+              <p class="copy">金额统一按今天购买力填写，系统会自动扣除通胀影响。</p>
+            </div>
+            <div class="grid two">
+              <label class="field">
+                <span>目前存款 / 可投资资产</span>
+                <div class="unit"><input id="currentSavings" name="currentSavings" type="number" min="0" step="1000" /><em>元</em></div>
+              </label>
+              <label class="field">
+                <span>从今年开始到退休前，第一年可新增存款</span>
+                <div class="unit"><input id="annualSavings" name="annualSavings" type="number" min="0" step="1000" /><em>元 / 年</em></div>
+                <small class="field-tip">这里填的是从今年开始的第一年能存下多少钱。系统会默认这笔存款从现在开始每年持续到退休；退休后这部分自动停止，不会再继续增加。</small>
+              </label>
+              <label class="field">
+                <span>退休前新增存款预估涨幅</span>
+                <div class="unit"><input id="annualSavingsGrowth" name="annualSavingsGrowth" type="number" min="0" max="30" step="0.1" /><em>% / 年</em></div>
+                <small class="field-tip">如果你预计工资上涨、每年能存下来的金额也会提高，就填这里。这个涨幅也只作用到退休前，退休后自动停止。</small>
+              </label>
+              <label class="field">
+                <span>退休前年化收益率</span>
+                <div class="unit"><input id="preReturn" name="preReturn" type="number" min="0" max="20" step="0.1" /><em>%</em></div>
+              </label>
+              <label class="field">
+                <span>FIRE 后年化收益率</span>
+                <div class="unit"><input id="postReturn" name="postReturn" type="number" min="0" max="20" step="0.1" /><em>%</em></div>
+              </label>
+              <label class="field span-2">
+                <span>长期年通胀率</span>
+                <div class="unit"><input id="inflationRate" name="inflationRate" type="number" min="0" max="15" step="0.1" /><em>%</em></div>
+              </label>
+            </div>
+            <p id="inflationNote" class="note">页面金额统一按今天购买力展示。</p>
+          </section>
+
+          <section class="block step-panel" data-step-label="退休支出">
+            <div class="section-head">
+              <p class="eyebrow">Expense Stack</p>
+              <h3>退休支出</h3>
+              <p class="copy">房贷、车贷、商业保障会按各自年限进入现金流；居民养老补缴则会从退休后开始计入。</p>
+            </div>
+
+            <div class="subgrid">
+              <div class="subblock">
+                <h4>基础与保险</h4>
+                <div class="grid two">
+                  <label class="field">
+                    <span>基础生活费</span>
+                    <div class="unit"><input id="livingExpense" name="livingExpense" type="number" min="0" step="1000" /><em>元 / 年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>其他年度支出</span>
+                    <div class="unit"><input id="otherExpense" name="otherExpense" type="number" min="0" step="1000" /><em>元 / 年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>商业保障支出</span>
+                    <div class="unit"><input id="commercialProtectionAnnual" name="commercialProtectionAnnual" type="number" min="0" step="1000" /><em>元 / 年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>商业保障还要几年</span>
+                    <div class="unit"><input id="commercialProtectionYears" name="commercialProtectionYears" type="number" min="0" max="60" step="1" /><em>年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>退休后居民养老补缴支出</span>
+                    <div class="unit"><input id="residentTopupAnnual" name="residentTopupAnnual" type="number" min="0" step="1000" /><em>元 / 年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>退休后居民养老补缴还要几年</span>
+                    <div class="unit"><input id="residentTopupYears" name="residentTopupYears" type="number" min="0" max="60" step="1" /><em>年</em></div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="subblock">
+                <h4>房贷</h4>
+                <div class="grid two">
+                  <label class="field">
+                    <span>还款方式</span>
+                    <select id="mortgageMode" name="mortgageMode">
+                      <option value="equalPayment">等额本息</option>
+                      <option value="equalPrincipal">等额本金</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>剩余年数</span>
+                    <div class="unit"><input id="mortgageYears" name="mortgageYears" type="number" min="0" max="60" step="1" /><em>年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>每年还款期数</span>
+                    <div class="unit"><input id="mortgagePeriodsPerYear" name="mortgagePeriodsPerYear" type="number" min="1" max="24" step="1" /><em>期 / 年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>年化利率</span>
+                    <div class="unit"><input id="mortgageRate" name="mortgageRate" type="number" min="0" max="20" step="0.01" /><em>%</em></div>
+                  </label>
+                  <label class="field">
+                    <span>当前一期本金</span>
+                    <div class="unit"><input id="mortgageCurrentPrincipal" name="mortgageCurrentPrincipal" type="number" min="0" step="1" /><em>元</em></div>
+                  </label>
+                  <label class="field">
+                    <span>当前一期利息</span>
+                    <div class="unit"><input id="mortgageCurrentInterest" name="mortgageCurrentInterest" type="number" min="0" step="1" /><em>元</em></div>
+                  </label>
+                  <label class="field">
+                    <span>下一期本金</span>
+                    <div class="unit"><input id="mortgageNextPrincipal" name="mortgageNextPrincipal" type="number" min="0" step="1" /><em>元</em></div>
+                  </label>
+                  <label class="field">
+                    <span>下一期利息</span>
+                    <div class="unit"><input id="mortgageNextInterest" name="mortgageNextInterest" type="number" min="0" step="1" /><em>元</em></div>
+                  </label>
+                </div>
+                <p id="mortgageNote" class="note">系统会按当前期和下一期账单推算逐年房贷现金流。</p>
+              </div>
+
+              <div class="subblock">
+                <h4>车贷</h4>
+                <div class="grid two">
+                  <label class="field">
+                    <span>车贷年支出</span>
+                    <div class="unit"><input id="carAnnual" name="carAnnual" type="number" min="0" step="1000" /><em>元 / 年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>车贷还要几年</span>
+                    <div class="unit"><input id="carYears" name="carYears" type="number" min="0" max="20" step="1" /><em>年</em></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="block step-panel" data-step-label="养老金与收入">
+            <div class="section-head">
+              <p class="eyebrow">Pension & Inflows</p>
+              <h3>养老金与退休后收入</h3>
+              <p class="copy">全部改成年龄口径，比“退休后第几年”更稳定。</p>
+            </div>
+
+            <div class="subgrid">
+              <div class="subblock">
+                <h4>上海居民养老保险测算</h4>
+                <div class="grid three">
+                  <label class="field">
+                    <span>几岁开始领取</span>
+                    <div class="unit"><input id="pensionStartAge" name="pensionStartAge" type="number" min="40" max="100" step="1" /><em>岁</em></div>
+                  </label>
+                  <label class="field">
+                    <span>预计退休那年账户余额</span>
+                    <div class="unit"><input id="pensionBalanceAtRetire" name="pensionBalanceAtRetire" type="number" min="0" step="1000" /><em>元</em></div>
+                  </label>
+                  <label class="field">
+                    <span>预计退休那年缴费年限</span>
+                    <div class="unit"><input id="pensionYearsAtRetire" name="pensionYearsAtRetire" type="number" min="0" max="60" step="1" /><em>年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>打算补缴几年</span>
+                    <div class="unit"><input id="pensionTopupYears" name="pensionTopupYears" type="number" min="0" max="20" step="1" /><em>年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>每年补缴费用</span>
+                    <div class="unit"><input id="pensionTopupCost" name="pensionTopupCost" type="number" min="0" step="1000" /><em>元 / 年</em></div>
+                  </label>
+                  <label class="field">
+                    <span>自动测算月养老金</span>
+                    <div class="unit readonly"><output id="pensionPreview">--</output><em>元 / 月</em></div>
+                  </label>
+                </div>
+                <p id="pensionNote" class="note">暂按：月养老金 = 账户余额 / 100 + 缴费年限 × 100。补缴费用的 1/3 会计入账户余额。</p>
+              </div>
+
+              <div class="subblock">
+                <h4>商业保险 / 年金给付</h4>
+                <div class="grid three">
+                  <label class="field">
+                    <span>几岁开始领取</span>
+                    <div class="unit"><input id="commercialStartAge" name="commercialStartAge" type="number" min="40" max="100" step="1" /><em>岁</em></div>
+                  </label>
+                  <label class="field">
+                    <span>每月金额</span>
+                    <div class="unit"><input id="commercialMonthly" name="commercialMonthly" type="number" min="0" step="100" /><em>元 / 月</em></div>
+                  </label>
+                  <label class="field">
+                    <span>持续几年</span>
+                    <div class="unit"><input id="commercialDuration" name="commercialDuration" type="number" min="0" max="80" step="1" /><em>0 = 终身</em></div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="subblock">
+                <h4>退休后兼职补贴</h4>
+                <div class="grid three">
+                  <label class="field">
+                    <span>几岁开始兼职</span>
+                    <div class="unit"><input id="sideStartAge" name="sideStartAge" type="number" min="18" max="100" step="1" /><em>岁</em></div>
+                  </label>
+                  <label class="field">
+                    <span>时薪</span>
+                    <div class="unit"><input id="sideHourly" name="sideHourly" type="number" min="0" step="1" /><em>元 / 小时</em></div>
+                  </label>
+                  <label class="field">
+                    <span>每周小时数</span>
+                    <div class="unit"><input id="sideWeeklyHours" name="sideWeeklyHours" type="number" min="0" step="0.5" /><em>小时</em></div>
+                  </label>
+                  <label class="field">
+                    <span>每年工作周数</span>
+                    <div class="unit"><input id="sideWeeks" name="sideWeeks" type="number" min="0" max="52" step="1" /><em>周</em></div>
+                  </label>
+                  <label class="field">
+                    <span>预计做几年</span>
+                    <div class="unit"><input id="sideDuration" name="sideDuration" type="number" min="0" max="60" step="1" /><em>0 = 终身</em></div>
+                  </label>
+                  <label class="field">
+                    <span>自动折算年收入</span>
+                    <div class="unit readonly"><output id="sideAnnualPreview">--</output><em>元 / 年</em></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="block step-panel" data-step-label="本金目标">
+            <div class="section-head">
+              <p class="eyebrow">Withdrawal</p>
+              <h3>本金支取规则</h3>
+              <p class="copy">不再用手动比例，而是直接用“希望什么时候花完”或“最后保留多少”来算年度预算。</p>
+            </div>
+
+            <div class="choice-grid">
+              <label class="choice">
+                <input type="radio" name="withdrawalMode" value="growth" />
+                <strong>我想知道我退休方案的合理性和详细规划</strong>
+                <span>系统会按你现在设想的退休生活去检验现金流是否稳妥，并给出更详细的退休规划建议。</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="withdrawalMode" value="principal" />
+                <strong>按目标动用本金</strong>
+                <span>根据你想在哪个年龄花到接近 0，或寿命末保留多少底仓，反推可行预算。</span>
+              </label>
+            </div>
+            <p class="note">这里的“主结果展示方式”和下面的“本金目标”可以同时使用，不是二选一。</p>
+
+            <div id="principalWrap" class="principal-wrap">
+              <div class="grid two target-grid">
+                <label class="field" id="targetEndAgeField">
+                  <span>我希望活到</span>
+                  <div class="unit"><input id="targetEndAge" name="targetEndAge" type="number" min="40" max="120" step="1" /><em>岁</em></div>
+                </label>
+
+                <label class="field" id="targetEndBalanceField">
+                  <span>那时本金还剩</span>
+                  <div class="unit"><input id="targetEndBalance" name="targetEndBalance" type="number" min="0" step="1000" /><em>元</em></div>
+                </label>
+              </div>
+
+              <p id="strategyNote" class="note">这里会根据你的目标退休年龄，反推出“活到几岁、最后还剩多少”的年度总预算。</p>
+            </div>
+          </section>
+
+          <div class="actions wizard-actions">
+            <button class="ghost" id="prevStepButton" type="button">上一步</button>
+            <button class="ghost" id="nextStepButton" type="button">下一步</button>
+            <button class="primary" id="submitButton" type="submit">生成结果</button>
+            <button class="ghost" id="saveButton" type="button">保存当前方案</button>
+            <button class="ghost" id="resetButton" type="button">清空表单</button>
+          </div>
+        </form>
+      </main>
+
+      <aside id="resultsPanel" class="results panel pending" hidden>
+        <section class="result-toolbar">
+          <div class="result-head">
+            <div>
+              <p class="eyebrow">Result View</p>
+              <h3>退休测算结果</h3>
+              <p class="copy">如果你想继续调整参数，可以返回修改；如果这版结果满意，也可以先保存当前方案。</p>
+            </div>
+            <div class="actions result-actions">
+              <button class="ghost" id="backToEditorButton" type="button">返回修改</button>
+              <button class="primary" id="saveResultButton" type="button">保存当前方案</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="resultsPlaceholder" class="result-block result-placeholder">
+          <div class="result-head">
+            <h3>先完成问答</h3>
+            <p class="copy">按顺序填完前面的步骤，最后点击“生成结果”，这里就会给你完整的退休分析。</p>
+          </div>
+        </section>
+
+        <section class="result-intro">
+          <p class="eyebrow">Forecast</p>
+          <h2 id="headlineTitle">等待计算</h2>
+          <p id="headlineCopy" class="copy">这里会告诉你目标退休年龄是否可达、按目标提款时最早能几岁 FIRE，以及每年本金如何变化。</p>
+        </section>
+
+        <section class="metric-grid">
+          <div class="metric"><span id="metricYears">--</span><label id="metricYearsLabel">距离最早 FIRE</label></div>
+          <div class="metric"><span id="metricRetireBalance">--</span><label>退休时资产</label></div>
+          <div class="metric"><span id="metricTargetGap">--</span><label id="metricTargetGapLabel">目标年龄资金缺口 / 富余</label></div>
+          <div class="metric"><span id="metricFinalBalance">--</span><label id="metricFinalLabel">终点剩余本金</label></div>
+        </section>
+
+        <section class="result-block">
+          <div class="result-head">
+            <h3>本金轨迹</h3>
+            <p id="chartCaption" class="copy">金额按今天购买力展示。</p>
+          </div>
+          <div id="chartHost" class="chart"></div>
+        </section>
+
+        <section class="result-block">
+          <div class="result-head">
+            <h3>调整建议</h3>
+            <p class="copy">如果你想坚持目标退休年龄，这里会给出更晚退休、增加储蓄或调整年度支出的参考。</p>
+          </div>
+          <div id="adviceList" class="advice-list"></div>
+        </section>
+
+        <section class="result-block">
+          <div class="result-head">
+            <h3>本金使用方案</h3>
+            <p class="copy">以下方案默认都按你的目标退休年龄测算。每张卡片第一行是你想达成的目标，第二行是按这个目标从退休开始每年大约可花多少钱。点任意一张卡片，下方会切到对应的年度本金明细。</p>
+          </div>
+          <div id="principalPlans" class="plan-list"></div>
+        </section>
+
+        <section class="result-block">
+          <div class="result-head">
+            <h3 id="yearlyPlanTitle">年度本金明细</h3>
+            <p id="yearlyPlanCopy" class="copy">表格会同时展示今天购买力和当年价格，方便对照通胀影响。</p>
+          </div>
+          <div class="table-wrap">
+            <table class="year-table">
+              <thead>
+                <tr>
+                  <th>年龄</th>
+                  <th>累计通胀</th>
+                  <th>期初本金</th>
+                  <th>当年外部收入<br />按今天购买力</th>
+                  <th>当年总可花预算<br />按今天购买力</th>
+                  <th>当年外部收入<br />按当年价格</th>
+                  <th>当年总可花预算<br />按当年价格</th>
+                  <th>期末本金</th>
+                </tr>
+              </thead>
+              <tbody id="yearlyRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
+    <script src="model.js"></script>
+    <script src="cloud.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
